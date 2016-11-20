@@ -1,5 +1,6 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var bcrypt = require('bcryptjs');
 var _ = require('underscore');
 var db = require('./db.js');
 
@@ -58,16 +59,6 @@ app.get('/todos/:id', function(req, res) {
 		.catch( function (e) {
 					res.status(500).json(e);
 		});
-
-		// //uses underscore library
-		// var match = _.findWhere(todos, {id: todoId});
-		//
-		// if(match) {
-		// 		res.json(match);
-		// }
-		// else {
-		// 		res.status(404).send();
-		// }
 
 });
 
@@ -144,6 +135,8 @@ app.put('/todos/:id', function(req, res) {
 
 });
 
+// POST /users
+
 app.post('/users', function (req, res) {
 	var body = _.pick(req.body, 'email', 'password');
 
@@ -158,7 +151,21 @@ app.post('/users', function (req, res) {
 
 });
 
-db.sequelize.sync(/*{force: true}*/)
+// POST /users/login
+app.post('/users/login', function (req, res) {
+		var body = _.pick(req.body, 'email', 'password');
+
+		db.user.authenticate(body)
+		.then ( function (user) {
+				res.json(user.toPublicJSON())
+		})
+		.catch( function () {
+				res.status(401).send();
+		});
+
+});
+
+db.sequelize.sync({force: true})
 .then( function () {
 		app.listen(PORT, function () {
 				console.log('Express listening on port ' + PORT + '!');
